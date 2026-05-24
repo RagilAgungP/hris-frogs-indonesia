@@ -12,20 +12,16 @@ class Pkwt extends Model
     protected $table = 'pkwt';
 
     protected $fillable = [
-        'employee_name',
+        'employee_id',
         'contract_number',
         'start_date',
         'end_date',
-        'position',
-        'department',
         'company',
         'file_path',
     ];
 
-
     public function employee()
-{
-    return $this->belongsTo(Employee::class);
+    {
+        return $this->belongsTo(Employee::class);
+    }
 }
-}
-

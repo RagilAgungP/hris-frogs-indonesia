@@ -6,66 +6,80 @@
 
 @php
     use Carbon\Carbon;
+    use Illuminate\Support\Facades\Storage;
 @endphp
 
 <div class="container mx-auto p-6">
 
-    <div class="bg-white shadow-lg rounded-lg p-6">
+    <div class="bg-white shadow-lg rounded-2xl p-6">
 
         {{-- Header --}}
-        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 space-y-4 md:space-y-0">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
 
-            {{-- Tabs --}}
-            <div class="flex space-x-2 border-b border-gray-200">
+            <div>
 
-                <button id="activeTab"
-                    onclick="switchTab('active')"
-                    class="px-4 py-2 font-semibold transition border-b-4 -mb-1">
-                    Active
-                </button>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    PKWT Employees
+                </h1>
 
-                <button id="resignTab"
-                    onclick="switchTab('resign')"
-                    class="px-4 py-2 font-semibold transition border-b-4 -mb-1">
-                    Resign
-                </button>
+                <p class="text-gray-500 mt-1">
+                    Management data kontrak karyawan perusahaan
+                </p>
 
             </div>
 
             {{-- Add --}}
             <a href="{{ route('pkwt.create') }}"
-                class="px-4 py-2 bg-[#3db5ff] text-white rounded hover:bg-[#33a0e0] font-semibold">
+                class="px-5 py-2.5 bg-[#3db5ff] text-white rounded-xl hover:bg-[#33a0e0] font-semibold transition duration-200 shadow-sm">
+
                 Add New PKWT Employee
+
             </a>
 
         </div>
 
-        {{-- Search --}}
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-4 md:space-y-0">
+        {{-- Filter --}}
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
 
-            <input
-                type="text"
-                id="searchInput"
-                onkeyup="filterTable()"
-                placeholder="Search employee..."
-                class="border border-gray-300 rounded px-3 py-2 w-full md:w-1/3">
+            {{-- Search --}}
+            <div class="w-full xl:w-1/3">
 
-            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <input
+                    type="text"
+                    id="searchInput"
+                    onkeyup="filterTable()"
+                    placeholder="Search employee..."
+                    class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#3db5ff]">
+
+            </div>
+
+            {{-- Filters --}}
+            <div class="flex flex-col sm:flex-row gap-3">
+
+                {{-- Status --}}
+                <select id="statusFilter"
+                    onchange="filterTable()"
+                    class="border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#3db5ff]">
+
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="almost expired">Almost Expired</option>
+                    <option value="expired">Expired</option>
+
+                </select>
 
                 {{-- Department --}}
                 <select id="departmentFilter"
                     onchange="filterTable()"
-                    class="border border-gray-300 rounded px-3 py-2">
+                    class="border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#3db5ff]">
 
                     <option value="">All Department</option>
 
-                    @foreach($pkwts->pluck('employee.department')->unique() as $department)
+                    @foreach($pkwts->pluck('employee.department')->filter()->unique() as $department)
 
-                        @if($department)
-                            <option value="{{ strtolower($department) }}">
-                                {{ $department }}
-                            </option>
-                        @endif
+                        <option value="{{ strtolower($department) }}">
+                            {{ $department }}
+                        </option>
 
                     @endforeach
 
@@ -74,17 +88,15 @@
                 {{-- Position --}}
                 <select id="positionFilter"
                     onchange="filterTable()"
-                    class="border border-gray-300 rounded px-3 py-2">
+                    class="border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#3db5ff]">
 
                     <option value="">All Position</option>
 
-                    @foreach($pkwts->pluck('employee.position')->unique() as $position)
+                    @foreach($pkwts->pluck('employee.position')->filter()->unique() as $position)
 
-                        @if($position)
-                            <option value="{{ strtolower($position) }}">
-                                {{ $position }}
-                            </option>
-                        @endif
+                        <option value="{{ strtolower($position) }}">
+                            {{ $position }}
+                        </option>
 
                     @endforeach
 
@@ -95,149 +107,227 @@
         </div>
 
         {{-- Table --}}
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto rounded-xl border border-gray-200">
 
-            <table id="employeeTable" class="min-w-full border border-gray-200 rounded">
+            <table id="employeeTable" class="min-w-full">
 
                 <thead class="bg-[#3db5ff] text-white">
 
                     <tr>
-                        <th class="py-3 px-4 border-b text-center">No PKWT</th>
-                        <th class="py-3 px-4 border-b">Employee Name</th>
-                        <th class="py-3 px-4 border-b">Position</th>
-                        <th class="py-3 px-4 border-b">Department</th>
-                        <th class="py-3 px-4 border-b">Tanggal Awal</th>
-                        <th class="py-3 px-4 border-b">Tanggal Akhir</th>
-                        <th class="py-3 px-4 border-b">Waktu</th>
-                        <th class="py-3 px-4 border-b">File PKWT</th>
-                        <th class="py-3 px-4 border-b text-center">Action</th>
+
+                        <th class="py-3 px-4 border-b text-center whitespace-nowrap">
+                            No PKWT
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            Employee Name
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            Position
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            Department
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            Tanggal Awal
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            Tanggal Akhir
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            Duration
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            Remaining
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            Status
+                        </th>
+
+                        <th class="py-3 px-4 border-b whitespace-nowrap">
+                            File PKWT
+                        </th>
+
+                        <th class="py-3 px-4 border-b text-center whitespace-nowrap">
+                            Action
+                        </th>
+
                     </tr>
 
                 </thead>
 
-                <tbody>
+                <tbody class="bg-white">
 
                     @forelse($pkwts as $pkwt)
 
                         @php
-
                             $today = Carbon::today();
 
-                            $endDate = Carbon::parse($pkwt->end_date);
+                            $startDate = $pkwt->start_date ? Carbon::parse($pkwt->start_date) : null;
+                            $endDate = $pkwt->end_date ? Carbon::parse($pkwt->end_date) : null;
 
-                            $status = $endDate->gte($today) ? 'active' : 'resign';
+                            /*
+                            |--------------------------------------------------------------------------
+                            | STATUS
+                            |--------------------------------------------------------------------------
+                            */
+                            if (!$endDate) {
 
-                            $start = Carbon::parse($pkwt->start_date);
+                                $status = 'Active';
+                                $statusClass = 'bg-green-100 text-green-700';
+                                $rowClass = 'hover:bg-gray-50';
 
-                            $end = Carbon::parse($pkwt->end_date);
+                            } elseif ($endDate->isPast()) {
 
-                            $diff = $start->diff($end);
+                                $status = 'Expired';
+                                $statusClass = 'bg-red-100 text-red-700';
+                                $rowClass = 'bg-red-50 hover:bg-red-100';
 
-                            $duration = '';
+                            } elseif ($today->diffInDays($endDate, false) <= 30) {
 
-                            if ($diff->y > 0) {
-                                $duration .= $diff->y . ' Tahun ';
+                                $status = 'Almost Expired';
+                                $statusClass = 'bg-yellow-100 text-yellow-700';
+                                $rowClass = 'bg-yellow-50 hover:bg-yellow-100';
+
+                            } else {
+
+                                $status = 'Active';
+                                $statusClass = 'bg-green-100 text-green-700';
+                                $rowClass = 'hover:bg-gray-50';
+
                             }
 
-                            if ($diff->m > 0) {
-                                $duration .= $diff->m . ' Bulan ';
+                            /*
+                            |--------------------------------------------------------------------------
+                            | DURATION
+                            |--------------------------------------------------------------------------
+                            */
+                            if ($startDate && $endDate) {
+
+                                $diff = $startDate->diff($endDate);
+
+                                $duration = '';
+
+                                if ($diff->y > 0) {
+                                    $duration .= $diff->y . ' Tahun ';
+                                }
+
+                                if ($diff->m > 0) {
+                                    $duration .= $diff->m . ' Bulan ';
+                                }
+
+                                if ($diff->d > 0) {
+                                    $duration .= $diff->d . ' Hari';
+                                }
+
+                                $duration = trim($duration);
+
+                                if ($duration == '') {
+                                    $duration = '0 Hari';
+                                }
+
+                            } else {
+                                $duration = 'Belum ditentukan';
                             }
 
-                            if ($diff->d > 0) {
-                                $duration .= $diff->d . ' Hari';
-                            }
-
-                            $duration = trim($duration);
-
-                            if ($duration == '') {
-                                $duration = '0 Hari';
-                            }
-
+                            /*
+                            |--------------------------------------------------------------------------
+                            | REMAINING DAYS
+                            |--------------------------------------------------------------------------
+                            */
+                            $remainingDays = $endDate
+                                ? $today->diffInDays($endDate, false)
+                                : null;
                         @endphp
 
-                        <tr
-                            class="employee-row hover:bg-gray-50"
-                            data-status="{{ $status }}"
+                        <tr class="employee-row transition {{ $rowClass }}"
+                            data-status="{{ strtolower($status) }}"
                             data-department="{{ strtolower($pkwt->employee->department ?? '') }}"
                             data-position="{{ strtolower($pkwt->employee->position ?? '') }}">
 
-                            {{-- Contract Number --}}
-                            <td class="py-3 px-4 border-b text-center">
+                            <td class="py-3 px-4 border-b text-center whitespace-nowrap">
                                 {{ $pkwt->contract_number ?? '-' }}
                             </td>
 
-                            {{-- Employee Name --}}
-                            <td class="py-3 px-4 border-b">
+                            <td class="py-3 px-4 border-b whitespace-nowrap font-medium text-gray-800">
                                 {{ $pkwt->employee->name ?? '-' }}
                             </td>
 
-                            {{-- Position --}}
-                            <td class="py-3 px-4 border-b">
+                            <td class="py-3 px-4 border-b whitespace-nowrap">
                                 {{ $pkwt->employee->position ?? '-' }}
                             </td>
 
-                            {{-- Department --}}
-                            <td class="py-3 px-4 border-b">
+                            <td class="py-3 px-4 border-b whitespace-nowrap">
                                 {{ $pkwt->employee->department ?? '-' }}
                             </td>
 
-                            {{-- Start Date --}}
-                            <td class="py-3 px-4 border-b">
-                                {{ Carbon::parse($pkwt->start_date)->format('d M Y') }}
+                            <td class="py-3 px-4 border-b whitespace-nowrap">
+                                {{ $startDate ? $startDate->format('d M Y') : '-' }}
                             </td>
 
-                            {{-- End Date --}}
-                            <td class="py-3 px-4 border-b">
-                                {{ Carbon::parse($pkwt->end_date)->format('d M Y') }}
+                            <td class="py-3 px-4 border-b whitespace-nowrap">
+                                {{ $endDate ? $endDate->format('d M Y') : '-' }}
                             </td>
 
-                            {{-- Duration --}}
-                            <td class="py-3 px-4 border-b">
+                            <td class="py-3 px-4 border-b whitespace-nowrap">
                                 {{ $duration }}
                             </td>
 
-                            {{-- File --}}
-                            <td class="py-3 px-4 border-b">
+                            <td class="py-3 px-4 border-b whitespace-nowrap font-medium">
 
-                                @if($pkwt->file_path)
-
-                                    <a href="{{ asset('storage/' . $pkwt->file_path) }}"
-                                        target="_blank"
-                                        class="text-blue-600 hover:underline">
-
-                                        Download
-
-                                    </a>
-
+                                @if(is_null($remainingDays))
+                                    -
+                                @elseif($remainingDays < 0)
+                                    <span class="text-red-600">Expired</span>
                                 @else
-
-                                    <span class="text-gray-400">
-                                        No File
-                                    </span>
-
+                                    {{ $remainingDays }} Hari
                                 @endif
 
                             </td>
 
-                            {{-- Action --}}
-                            <td class="py-3 px-4 border-b text-center">
+                            <td class="py-3 px-4 border-b whitespace-nowrap">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $statusClass }}">
+                                    {{ $status }}
+                                </span>
+                            </td>
 
-                                <div class="relative inline-block text-left">
+                            <td class="py-3 px-4 border-b whitespace-nowrap">
+
+                                @if($pkwt->file_path)
+
+                                    <a href="{{ Storage::url($pkwt->file_path) }}"
+                                        target="_blank"
+                                        class="text-blue-600 hover:underline font-medium">
+                                        Download
+                                    </a>
+
+                                @else
+                                    <span class="text-gray-400">No File</span>
+                                @endif
+
+                            </td>
+
+                            <td class="py-3 px-4 border-b text-center whitespace-nowrap">
+
+                                <div class="relative inline-block text-left z-20">
 
                                     <button onclick="toggleDropdown(this)"
-                                        class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
-
+                                        class="bg-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-300 transition">
                                         Actions
-
                                     </button>
 
-                                    <div class="dropdown hidden absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-10">
+                                    <div class="dropdown hidden absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
 
                                         <a href="{{ route('pkwt.edit', $pkwt->id) }}"
                                             class="block px-4 py-2 hover:bg-gray-100 text-left">
-
                                             Edit
-
                                         </a>
 
                                         <form action="{{ route('pkwt.destroy', $pkwt->id) }}"
@@ -249,9 +339,7 @@
 
                                             <button type="submit"
                                                 class="block w-full text-left px-4 py-2 hover:bg-gray-100">
-
                                                 Delete
-
                                             </button>
 
                                         </form>
@@ -267,14 +355,9 @@
                     @empty
 
                         <tr>
-
-                            <td colspan="9"
-                                class="py-6 text-center text-gray-500">
-
+                            <td colspan="11" class="py-8 text-center text-gray-500">
                                 No PKWT employee data found.
-
                             </td>
-
                         </tr>
 
                     @endforelse
@@ -290,111 +373,51 @@
 </div>
 
 <script>
-
-// Dropdown
 function toggleDropdown(button) {
-
     document.querySelectorAll('.dropdown').forEach(dropdown => {
-
         if (dropdown !== button.nextElementSibling) {
             dropdown.classList.add('hidden');
         }
-
     });
 
-    const dropdown = button.nextElementSibling;
-
-    dropdown.classList.toggle('hidden');
-
+    button.nextElementSibling.classList.toggle('hidden');
 }
 
-// Close outside
 document.addEventListener('click', function(e) {
-
     if (!e.target.closest('.relative')) {
-
         document.querySelectorAll('.dropdown').forEach(dropdown => {
             dropdown.classList.add('hidden');
         });
-
     }
-
 });
 
-// Tab
-let currentTab = 'active';
-
-function switchTab(tab) {
-
-    currentTab = tab;
-
-    const activeBtn = document.getElementById('activeTab');
-
-    const resignBtn = document.getElementById('resignTab');
-
-    const activeClass = 'border-b-4 border-[#3db5ff] text-[#3db5ff]';
-
-    const inactiveClass = 'border-b-4 border-transparent text-gray-700';
-
-    if (tab === 'active') {
-
-        activeBtn.className = `px-4 py-2 font-semibold transition ${activeClass}`;
-
-        resignBtn.className = `px-4 py-2 font-semibold transition ${inactiveClass}`;
-
-    } else {
-
-        resignBtn.className = `px-4 py-2 font-semibold transition ${activeClass}`;
-
-        activeBtn.className = `px-4 py-2 font-semibold transition ${inactiveClass}`;
-
-    }
-
-    filterTable();
-
-}
-
-// Filter
 function filterTable() {
 
     const search = document.getElementById('searchInput').value.toLowerCase();
-
+    const status = document.getElementById('statusFilter').value.toLowerCase();
     const department = document.getElementById('departmentFilter').value.toLowerCase();
-
     const position = document.getElementById('positionFilter').value.toLowerCase();
 
     document.querySelectorAll('.employee-row').forEach(row => {
 
         const name = row.cells[1].innerText.toLowerCase();
-
-        const rowStatus = row.dataset.status;
-
-        const rowDepartment = row.dataset.department;
-
-        const rowPosition = row.dataset.position;
+        const rowStatus = row.dataset.status || '';
+        const rowDepartment = row.dataset.department || '';
+        const rowPosition = row.dataset.position || '';
 
         if (
             name.includes(search) &&
+            (status === '' || status === rowStatus) &&
             (department === '' || department === rowDepartment) &&
-            (position === '' || position === rowPosition) &&
-            rowStatus === currentTab
+            (position === '' || position === rowPosition)
         ) {
-
             row.style.display = '';
-
         } else {
-
             row.style.display = 'none';
-
         }
 
     });
-
 }
-
-// Init
-switchTab('active');
-
 </script>
 
 @endsection

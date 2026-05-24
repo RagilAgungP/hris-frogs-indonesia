@@ -14,9 +14,21 @@ class EmployeeSeeder extends Seeder
      */
     public function run(): void
     {
-        $branches = [
-            'FSI',
-            'ISTI',
+        /*
+        |--------------------------------------------------------------------------
+        | COMPANY & BRANCH
+        |--------------------------------------------------------------------------
+        */
+
+        $companies = [
+            [
+                'company' => 'PT Frogs Solusi Indonesia',
+                'branch' => 'FSI',
+            ],
+            [
+                'company' => 'PT Inovasi Solusi Transportasi Indonesia',
+                'branch' => 'ISTI',
+            ],
         ];
 
         $departments = [
@@ -38,6 +50,14 @@ class EmployeeSeeder extends Seeder
 
             /*
             |--------------------------------------------------------------------------
+            | RANDOM COMPANY
+            |--------------------------------------------------------------------------
+            */
+
+            $selectedCompany = fake()->randomElement($companies);
+
+            /*
+            |--------------------------------------------------------------------------
             | EMPLOYEE
             |--------------------------------------------------------------------------
             */
@@ -54,10 +74,10 @@ class EmployeeSeeder extends Seeder
                     'employee' . $i . '@company.com',
 
                 'company' =>
-                    'PT Future Strategy Indonesia',
+                    $selectedCompany['company'],
 
                 'branch' =>
-                    fake()->randomElement($branches),
+                    $selectedCompany['branch'],
 
                 /*
                 |--------------------------------------------------------------------------
