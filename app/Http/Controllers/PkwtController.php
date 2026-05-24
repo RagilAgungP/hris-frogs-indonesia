@@ -12,13 +12,18 @@ class PkwtController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index($branch)
     {
+        $branch = strtoupper($branch);
+
         $pkwts = Pkwt::with('employee')
+            ->whereHas('employee', function ($query) use ($branch) {
+                $query->where('branch', $branch);
+            })
             ->latest()
             ->get();
 
-        return view('pkwt.fsi', compact('pkwts'));
+        return view('pkwt.index', compact('pkwts', 'branch'));
     }
 
     /**
@@ -37,13 +42,15 @@ class PkwtController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'employee_id' => 'required|exists:employees,id',
+            'employee_id'     => 'required|exists:employees,id',
             'contract_number' => 'nullable|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'company' => 'nullable|string|max:255',
-            'file_path' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'start_date'      => 'required|date',
+            'end_date'        => 'required|date',
+            'company'         => 'nullable|string|max:255',
+            'file_path'       => 'nullable|file|mimes:pdf,doc,docx|max:2048',
         ]);
+
+        $employee = Employee::findOrFail($request->employee_id);
 
         $filePath = null;
 
@@ -54,16 +61,16 @@ class PkwtController extends Controller
         }
 
         Pkwt::create([
-            'employee_id' => $request->employee_id,
+            'employee_id'     => $request->employee_id,
             'contract_number' => $request->contract_number,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'company' => $request->company,
-            'file_path' => $filePath,
+            'start_date'      => $request->start_date,
+            'end_date'        => $request->end_date,
+            'company'         => $request->company,
+            'file_path'       => $filePath,
         ]);
 
         return redirect()
-            ->route('pkwt.index')
+            ->route('pkwt.branch', strtolower($employee->branch))
             ->with('success', 'PKWT employee created successfully.');
     }
 
@@ -76,7 +83,7 @@ class PkwtController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the resource.
      */
     public function edit(Pkwt $pkwt)
     {
@@ -91,13 +98,15 @@ class PkwtController extends Controller
     public function update(Request $request, Pkwt $pkwt)
     {
         $request->validate([
-            'employee_id' => 'required|exists:employees,id',
+            'employee_id'     => 'required|exists:employees,id',
             'contract_number' => 'nullable|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'company' => 'nullable|string|max:255',
-            'file_path' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'start_date'      => 'required|date',
+            'end_date'        => 'required|date',
+            'company'         => 'nullable|string|max:255',
+            'file_path'       => 'nullable|file|mimes:pdf,doc,docx|max:2048',
         ]);
+
+        $employee = Employee::findOrFail($request->employee_id);
 
         $filePath = $pkwt->file_path;
 
@@ -116,16 +125,16 @@ class PkwtController extends Controller
         }
 
         $pkwt->update([
-            'employee_id' => $request->employee_id,
+            'employee_id'     => $request->employee_id,
             'contract_number' => $request->contract_number,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'company' => $request->company,
-            'file_path' => $filePath,
+            'start_date'      => $request->start_date,
+            'end_date'        => $request->end_date,
+            'company'         => $request->company,
+            'file_path'       => $filePath,
         ]);
 
         return redirect()
-            ->route('pkwt.index')
+            ->route('pkwt.branch', strtolower($employee->branch))
             ->with('success', 'PKWT employee updated successfully.');
     }
 
@@ -134,6 +143,8 @@ class PkwtController extends Controller
      */
     public function destroy(Pkwt $pkwt)
     {
+        $branch = strtolower($pkwt->employee->branch);
+
         if (
             $pkwt->file_path &&
             Storage::disk('public')->exists($pkwt->file_path)
@@ -145,7 +156,7 @@ class PkwtController extends Controller
         $pkwt->delete();
 
         return redirect()
-            ->route('pkwt.index')
+            ->route('pkwt.branch', $branch)
             ->with('success', 'PKWT employee deleted successfully.');
     }
 }

@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'PKWT Employees | PT Inovasi Solusi Transportasi Indonesia')
-
+@section('title', 'PKWT ' . $branch . ' Employees')
 @section('content')
 
 @php
@@ -18,13 +17,13 @@
 
             <div>
 
-                <h1 class="text-2xl font-bold text-gray-800">
-                    PKWT Employees
-                </h1>
+           <h1 class="text-2xl font-bold text-gray-800">
+    PKWT {{ $branch }} Employees
+</h1>
 
-                <p class="text-gray-500 mt-1">
-                    Management data kontrak karyawan perusahaan
-                </p>
+            <p class="text-gray-500 mt-1">
+    Management data kontrak karyawan {{ $branch }}
+</p>
 
             </div>
 

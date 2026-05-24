@@ -176,22 +176,27 @@ class EmployeeController extends Controller
             default => null,
         };
 
-        $employee->update([
-            'employee_id'        => $request->employee_id,
-            'name'               => $request->name,
-            'email'              => $request->email,
-            'company'            => $company,
-            'position'           => $request->position,
-            'department'         => $request->department,
-            'date_of_joining'    => $request->date_of_joining,
-            'branch'             => $request->branch,
-            'status'             => $request->status,
-            'employee_condition' => $request->employee_condition,
-        ]);
+$employee->update([
+    'employee_id'        => $request->employee_id,
+    'name'               => $request->name,
+    'email'              => $request->email,
+    'company'            => $company,
+    'position'           => $request->position,
+    'department'         => $request->department,
+    'date_of_joining'    => $request->date_of_joining,
+    'branch'             => $request->branch,
+    'status'             => $request->status,
+    'employee_condition' => $request->employee_condition,
+]);
 
-        return redirect()
-            ->route($employee->branch == 'FSI' ? 'employee.fsi' : 'employee.isti')
-            ->with('success', 'Employee updated successfully');
+Pkwt::where('employee_id', $employee->id)
+    ->update([
+        'company' => $company
+    ]);
+
+return redirect()
+    ->route($request->branch == 'FSI' ? 'employee.fsi' : 'employee.isti')
+    ->with('success', 'Employee updated successfully');
     }
 
     public function destroy(Employee $employee)
