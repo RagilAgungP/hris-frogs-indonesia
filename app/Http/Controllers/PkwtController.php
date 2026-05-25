@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Storage;
 
 class PkwtController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | INDEX (BY BRANCH)
+    |--------------------------------------------------------------------------
+    */
     public function index($branch)
     {
         $branch = strtoupper($branch);
@@ -23,12 +25,18 @@ class PkwtController extends Controller
             ->latest()
             ->get();
 
-        return view('pkwt.index', compact('pkwts', 'branch'));
+        $employees = Employee::where('branch', $branch)
+            ->orderBy('name')
+            ->get();
+
+        return view('pkwt.index', compact('pkwts', 'branch', 'employees'));
     }
 
-    /**
-     * Show the form for creating the resource.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE FORM
+    |--------------------------------------------------------------------------
+    */
     public function create()
     {
         $employees = Employee::orderBy('name')->get();
@@ -36,12 +44,14 @@ class PkwtController extends Controller
         return view('pkwt.create', compact('employees'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | STORE
+    |--------------------------------------------------------------------------
+    */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'employee_id'     => 'required|exists:employees,id',
             'contract_number' => 'nullable|string|max:255',
             'start_date'      => 'required|date',
@@ -50,54 +60,54 @@ class PkwtController extends Controller
             'file_path'       => 'nullable|file|mimes:pdf,doc,docx|max:2048',
         ]);
 
-        $employee = Employee::findOrFail($request->employee_id);
+        $employee = Employee::findOrFail($validated['employee_id']);
 
         $filePath = null;
 
         if ($request->hasFile('file_path')) {
-
             $filePath = $request->file('file_path')
                 ->store('pkwt_files', 'public');
         }
 
         Pkwt::create([
-            'employee_id'     => $request->employee_id,
-            'contract_number' => $request->contract_number,
-            'start_date'      => $request->start_date,
-            'end_date'        => $request->end_date,
-            'company'         => $request->company,
+            'employee_id'     => $validated['employee_id'],
+            'contract_number' => $validated['contract_number'] ?? null,
+            'start_date'      => $validated['start_date'],
+            'end_date'        => $validated['end_date'],
+            'company'         => $validated['company'] ?? null,
             'file_path'       => $filePath,
         ]);
 
         return redirect()
             ->route('pkwt.branch', strtolower($employee->branch))
-            ->with('success', 'PKWT employee created successfully.');
+            ->with('success', 'PKWT berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | JSON (FOR MODAL AJAX)
+    |--------------------------------------------------------------------------
+    */
     public function show(Pkwt $pkwt)
     {
-        //
+        return response()->json([
+            'id'              => $pkwt->id,
+            'employee_id'     => $pkwt->employee_id,
+            'contract_number' => $pkwt->contract_number,
+            'start_date'      => optional($pkwt->start_date)->format('Y-m-d'),
+            'end_date'        => optional($pkwt->end_date)->format('Y-m-d'),
+            'company'         => $pkwt->company,
+        ]);
     }
 
-    /**
-     * Show the form for editing the resource.
-     */
-    public function edit(Pkwt $pkwt)
-    {
-        $employees = Employee::orderBy('name')->get();
-
-        return view('pkwt.edit', compact('pkwt', 'employees'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE
+    |--------------------------------------------------------------------------
+    */
     public function update(Request $request, Pkwt $pkwt)
     {
-        $request->validate([
+        $validated = $request->validate([
             'employee_id'     => 'required|exists:employees,id',
             'contract_number' => 'nullable|string|max:255',
             'start_date'      => 'required|date',
@@ -106,17 +116,13 @@ class PkwtController extends Controller
             'file_path'       => 'nullable|file|mimes:pdf,doc,docx|max:2048',
         ]);
 
-        $employee = Employee::findOrFail($request->employee_id);
+        $employee = Employee::findOrFail($validated['employee_id']);
 
         $filePath = $pkwt->file_path;
 
         if ($request->hasFile('file_path')) {
 
-            if (
-                $pkwt->file_path &&
-                Storage::disk('public')->exists($pkwt->file_path)
-            ) {
-
+            if ($pkwt->file_path && Storage::disk('public')->exists($pkwt->file_path)) {
                 Storage::disk('public')->delete($pkwt->file_path);
             }
 
@@ -125,31 +131,29 @@ class PkwtController extends Controller
         }
 
         $pkwt->update([
-            'employee_id'     => $request->employee_id,
-            'contract_number' => $request->contract_number,
-            'start_date'      => $request->start_date,
-            'end_date'        => $request->end_date,
-            'company'         => $request->company,
+            'employee_id'     => $validated['employee_id'],
+            'contract_number' => $validated['contract_number'] ?? null,
+            'start_date'      => $validated['start_date'],
+            'end_date'        => $validated['end_date'],
+            'company'         => $validated['company'] ?? null,
             'file_path'       => $filePath,
         ]);
 
         return redirect()
             ->route('pkwt.branch', strtolower($employee->branch))
-            ->with('success', 'PKWT employee updated successfully.');
+            ->with('success', 'PKWT berhasil diupdate.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE
+    |--------------------------------------------------------------------------
+    */
     public function destroy(Pkwt $pkwt)
     {
         $branch = strtolower($pkwt->employee->branch);
 
-        if (
-            $pkwt->file_path &&
-            Storage::disk('public')->exists($pkwt->file_path)
-        ) {
-
+        if ($pkwt->file_path && Storage::disk('public')->exists($pkwt->file_path)) {
             Storage::disk('public')->delete($pkwt->file_path);
         }
 
@@ -157,6 +161,33 @@ class PkwtController extends Controller
 
         return redirect()
             ->route('pkwt.branch', $branch)
-            ->with('success', 'PKWT employee deleted successfully.');
+            ->with('success', 'PKWT berhasil dihapus.');
     }
+
+    public function download(Pkwt $pkwt)
+{
+    if (!$pkwt->file_path || !Storage::disk('public')->exists($pkwt->file_path)) {
+        abort(404);
+    }
+
+    $path = storage_path('app/public/' . $pkwt->file_path);
+
+    return response()->download(
+        $path,
+        basename($pkwt->file_path) // nama file tetap
+    );
+}
+
+public function deleteFile(Pkwt $pkwt)
+{
+    if ($pkwt->file_path && Storage::disk('public')->exists($pkwt->file_path)) {
+        Storage::disk('public')->delete($pkwt->file_path);
+    }
+
+    $pkwt->update([
+        'file_path' => null
+    ]);
+
+    return back()->with('success', 'File PKWT berhasil dihapus.');
+}
 }

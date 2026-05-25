@@ -13,6 +13,7 @@
 </head>
 
 <body 
+
     class="flex min-h-screen"
     style="
         background: linear-gradient(to bottom, white, #3DB5FF);
@@ -38,6 +39,8 @@
         </main>
 
     </div>
-
+<style>
+[x-cloak] { display: none !important; }
+</style>
 </body>
 </html>
