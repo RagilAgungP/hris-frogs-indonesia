@@ -1,4 +1,5 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -9,11 +10,14 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- Bootstrap CSS --}}
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
 
-<body 
-
+<body
     class="flex min-h-screen"
     style="
         background: linear-gradient(to bottom, white, #3DB5FF);
@@ -22,7 +26,6 @@
         background-size: cover;
     "
 >
-
 
     {{-- Sidebar --}}
     @include('components.sidebar')
@@ -39,8 +42,15 @@
         </main>
 
     </div>
-<style>
-[x-cloak] { display: none !important; }
-</style>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+
+    {{-- Bootstrap JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
