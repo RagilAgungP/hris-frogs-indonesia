@@ -24,6 +24,11 @@ function openEditModal(id) {
 
     loadBootstrapCSS();
 
+    const modalElement =
+        document.getElementById('editPkwtModal');
+
+    modalElement.classList.remove('hidden');
+
     fetch(`/pkwt/${id}/json`)
         .then(res => res.json())
         .then(data => {
@@ -46,9 +51,7 @@ function openEditModal(id) {
             document.getElementById('end_date')
                 .value = data.end_date ?? '';
 
-            const modal = new bootstrap.Modal(
-                document.getElementById('editPkwtModal')
-            );
+            const modal = new bootstrap.Modal(modalElement);
 
             modal.show();
         });
@@ -62,6 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!modalElement) return;
 
     modalElement.addEventListener('hidden.bs.modal', () => {
+
+        modalElement.classList.add('hidden');
 
         const css =
             document.getElementById('bootstrap-modal-css');

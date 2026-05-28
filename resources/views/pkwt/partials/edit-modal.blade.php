@@ -3,10 +3,10 @@
     {{-- ===================== --}}
     {{-- MODAL (BOOTSTRAP ONLY FOR THIS COMPONENT) --}}
     {{-- ===================== --}}
-    <div class="modal fade"
-         id="editPkwtModal"
-         tabindex="-1"
-         aria-hidden="true">
+    <div class="modal fade hidden"
+     id="editPkwtModal"
+     tabindex="-1"
+     aria-hidden="true">
 
         <div class="modal-dialog modal-lg modal-dialog-centered">
 
