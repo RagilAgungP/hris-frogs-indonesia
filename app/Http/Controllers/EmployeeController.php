@@ -218,14 +218,18 @@ return redirect()
         return back()->with('success', 'Employee resigned successfully');
     }
 
-    public function show($id)
-    {
-        $employee = Employee::with([
-            'identity',
-            'identityDetail',
-            'pkwts'
-        ])->findOrFail($id);
+ public function show(Pkwt $pkwt)
+{
+    $pkwt->load('employee');
 
-        return view('employees.show', compact('employee'));
-    }
+    return response()->json([
+        'id'              => $pkwt->id,
+        'employee_id'     => $pkwt->employee_id,
+        'employee_name'   => $pkwt->employee->name ?? '',
+        'contract_number' => $pkwt->contract_number,
+        'start_date'      => optional($pkwt->start_date)->format('Y-m-d'),
+        'end_date'        => optional($pkwt->end_date)->format('Y-m-d'),
+        'company'         => $pkwt->company,
+    ]);
+}
 }

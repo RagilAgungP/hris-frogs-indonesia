@@ -36,14 +36,14 @@ function openEditModal(id) {
             document.getElementById('editPkwtForm')
                 .action = `/pkwt/${data.id}`;
 
-            document.getElementById('employee_id')
-                .value = data.employee_id ?? '';
+            document.getElementById('employee_id').innerHTML = `
+    <option value="${data.employee_id}" selected>
+        ${data.employee_name}
+    </option>
+`;
 
             document.getElementById('contract_number')
                 .value = data.contract_number ?? '';
-
-            document.getElementById('company')
-                .value = data.company ?? '';
 
             document.getElementById('start_date')
                 .value = data.start_date ?? '';

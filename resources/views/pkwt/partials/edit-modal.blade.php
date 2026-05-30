@@ -50,16 +50,9 @@
                             </label>
 
                             <select name="employee_id"
-                                    id="employee_id"
-                                    class="form-select">
-
-                                @foreach($employees as $employee)
-                                    <option value="{{ $employee->id }}">
-                                        {{ $employee->name }} - {{ $employee->position }}
-                                    </option>
-                                @endforeach
-
-                            </select>
+        id="employee_id"
+        class="form-select">
+</select>
 
                         </div>
 
@@ -78,18 +71,7 @@
 
                             </div>
 
-                            <div class="col-md-6">
-
-                                <label class="form-label fw-semibold">
-                                    Company
-                                </label>
-
-                                <input type="text"
-                                       name="company"
-                                       id="company"
-                                       class="form-control">
-
-                            </div>
+                        
 
                             <div class="col-md-6">
 

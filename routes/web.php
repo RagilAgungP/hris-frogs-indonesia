@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PkwtController;
 use App\Models\Pkwt;
+use App\Http\Controllers\SeeDetailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,13 +66,14 @@ Route::middleware('auth')->group(function () {
 
     Route::put('/employee/{employee}/resign', [EmployeeController::class, 'resign'])->name('employee.resign');
 
-    Route::get('/employees/{id}', [EmployeeController::class, 'show'])->name('employee.show');
-    Route::put('/employees/{id}/update-main', [EmployeeController::class, 'updateMain'])->name('employee.updateMain');
-    Route::put('/employees/{id}/update-identity', [EmployeeController::class, 'updateIdentity'])->name('employee.updateIdentity');
-    Route::put('/employees/{id}/update-identity-detail', [EmployeeController::class, 'updateIdentityDetail'])->name('employee.updateIdentityDetail');
 
-    Route::post('/employee/{id}/inline-update', [EmployeeController::class, 'inlineUpdate'])->name('employee.inlineUpdate');
+Route::get('/employees/{id}', [SeeDetailController::class, 'show'])->name('employee.show');
 
+Route::put('/employees/{id}/update-main', [SeeDetailController::class, 'updateEmployee'])->name('employee.updateMain');
+
+Route::put('/employees/{id}/update-identity', [SeeDetailController::class, 'updateIdentity'])->name('employee.updateIdentity');
+
+Route::put('/employees/{id}/update-identity-detail', [SeeDetailController::class, 'updateIdentityDetail'])->name('employee.updateIdentityDetail');
     Route::resource('employee', EmployeeController::class);
 
     /*
@@ -89,16 +91,20 @@ Route::middleware('auth')->group(function () {
     | PKWT JSON (FIXED - hanya 1 route)
     |--------------------------------------------------------------------------
     */
-    Route::get('/pkwt/{pkwt}/json', function (Pkwt $pkwt) {
-        return response()->json([
-            'id' => $pkwt->id,
-            'employee_id' => $pkwt->employee_id,
-            'contract_number' => $pkwt->contract_number,
-            'start_date' => optional($pkwt->start_date)->format('Y-m-d'),
-            'end_date' => optional($pkwt->end_date)->format('Y-m-d'),
-            'company' => $pkwt->company,
-        ]);
-    })->name('pkwt.json');
+    Route::get('/pkwt/{id}/json', function ($id) {
+
+    $pkwt = \App\Models\Pkwt::with('employee')->find($id);
+
+    return response()->json([
+        'id' => $pkwt?->id,
+        'employee_id' => $pkwt?->employee_id,
+        'employee_name' => $pkwt?->employee?->name,
+        'contract_number' => $pkwt?->contract_number,
+        'start_date' => optional($pkwt?->start_date)->format('Y-m-d'),
+        'end_date' => optional($pkwt?->end_date)->format('Y-m-d'),
+        'company' => $pkwt?->company,
+    ]);
+});
 
     /*
     |--------------------------------------------------------------------------

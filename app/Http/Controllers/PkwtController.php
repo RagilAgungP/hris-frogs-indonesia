@@ -54,8 +54,8 @@ class PkwtController extends Controller
         $validated = $request->validate([
             'employee_id'     => 'required|exists:employees,id',
             'contract_number' => 'nullable|string|max:255',
-            'start_date'      => 'required|date',
-            'end_date'        => 'required|date',
+            'start_date'      => 'nullable|date',
+            'end_date'        => 'nullable|date',
             'company'         => 'nullable|string|max:255',
             'file_path'       => 'nullable|file|mimes:pdf,doc,docx|max:2048',
         ]);
@@ -89,16 +89,19 @@ class PkwtController extends Controller
     |--------------------------------------------------------------------------
     */
     public function show(Pkwt $pkwt)
-    {
-        return response()->json([
-            'id'              => $pkwt->id,
-            'employee_id'     => $pkwt->employee_id,
-            'contract_number' => $pkwt->contract_number,
-            'start_date'      => optional($pkwt->start_date)->format('Y-m-d'),
-            'end_date'        => optional($pkwt->end_date)->format('Y-m-d'),
-            'company'         => $pkwt->company,
-        ]);
-    }
+{
+    $pkwt->load('employee');
+
+    return response()->json([
+        'id'              => $pkwt->id,
+        'employee_id'     => $pkwt->employee_id,
+        'employee_name'   => $pkwt->employee->name ?? '',
+        'contract_number' => $pkwt->contract_number,
+        'start_date'      => optional($pkwt->start_date)->format('Y-m-d'),
+        'end_date'        => optional($pkwt->end_date)->format('Y-m-d'),
+        'company'         => $pkwt->company,
+    ]);
+}
 
     /*
     |--------------------------------------------------------------------------
